@@ -1,25 +1,31 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include <locale.h>
+#include <wchar.h>
+#include <Windows.h>
 
 
 void printaTab (int bombas[][5], int tam, int clicados[][5], int resultante[][5]);
 int receberCordenada (int clicados[][5],int matriz[][5]);
 void calculaResultante (int bombas[][5], int resultante[][5]);
 void clicar (int matriz[][5], int i, int j, int matriz2[][5]);
+int menuCampo ();
 
 
 int main()
 {
+    SetConsoleOutputCP(CP_UTF8);
+
     int tam=5;
     int bombas[][5]= {{0,0,1,0,0},
-        {1,0,0,1,0},
-        {0,0,0,1,0},
-        {0,1,0,0,1},
-        {1,0,0,1,0}
+                      {1,0,0,0,0},
+                      {0,0,0,0,0},
+                      {0,1,0,0,0},
+                      {1,0,0,1,0}
     };
 
     int clicados[5][5];
     int resultante[5][5];
+    int seq;
 
     for(int i=0; i<5; i++)
     {
@@ -36,6 +42,12 @@ int main()
             resultante[i][j]=0;
         }
     }
+
+    do{
+
+
+    if (menuCampo()==1){
+
     calculaResultante(bombas,resultante);
     do
     {
@@ -46,6 +58,14 @@ int main()
 
     }
     while(receberCordenada(clicados,resultante));
+
+    }else {
+        printf("Saiu do jogo !");
+
+        return 0;
+    }
+    }while(1);
+
 
     return 0;
 }
@@ -78,7 +98,7 @@ void printaTab (int bombas[][5], int tam, int clicados[][5], int resultante[][5]
                 printf("%d", resultante[i][j]);
             }
             else
-                printf("*");
+                printf("💣");
 
 
         }
@@ -103,7 +123,9 @@ int receberCordenada (int clicados[][5],int matriz[][5])
     clicar(clicados,linha,coluna,matriz);
 
     if (matriz[linha][coluna]==-1){
-        printf("perdeu otario\n");
+            system("cls");
+        fflush(stdin);
+        printf("Game Over!\n");
         return 0;
     }
 
@@ -182,4 +204,20 @@ void clicar (int matriz[][5], int i, int j, int matriz2[][5])
 
     }
 }
+
+int menuCampo (){
+
+    int resp;
+
+    printf("-------CAMPO MINADO--------\n\n");
+    printf("---------------------------\n");
+    printf("1-jogar:-------------------\n");
+    printf("2-sair: -------------------\n");
+    printf("---------------------------\n");
+
+    scanf("%d", &resp);
+
+    return resp;
+}
+
 
