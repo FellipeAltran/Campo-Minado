@@ -6,7 +6,7 @@
 #include <Windows.h>
 
 
-
+void printCampoMinado();
 
 int menuCampo ();
 
@@ -202,11 +202,14 @@ void clicar(int **clicados, int **resultante, int i, int j, int tam){
 int menuCampo (){
 
     int resp;
-
-    printf("-------CAMPO MINADO--------\n\n");
-    printf("---------------------------\n");
-    printf("1-jogar:-------------------\n");
-    printf("2-sair: -------------------\n");
+    printCampoMinado();
+    printf(R"EOF(  _           _   ___    ___    _    ___        ___         ___        _
+ / |  ___    (_) / _ \  / __|  /_\  | _ \      |_  )  ___  / __| __ _ (_) _ _
+ | | |___|   | || (_) || (_ | / _ \ |   /       / /  |___| \__ \/ _` || || '_|
+ |_|        _/ | \___/  \___|/_/ \_\|_|_\      /___|       |___/\__,_||_||_|
+           |__/                                                                     )EOF");
+    printf("|1-jogar\n");
+    printf("|2-sair: -------------------\n");
     printf("---------------------------\n");
 
     scanf("%d", &resp);
@@ -248,4 +251,23 @@ void preencherBombas(int **bombas, int vi[], int vj[], int nBombas, int tam){
             }
         }
     }
+}
+
+void printCampoMinado(){
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+
+    printf(R"EOF( ________________________________________________________________________________
+|   ____                                  __  __  _                    _         |
+|  / ___| __ _  _ __ ___   _ __    ___   |  \/  |(_) _ __    __ _   __| |  ___   |
+| | |    / _` || '_ ` _ \ | '_ \  / _ \  | |\/| || || '_ \  / _` | / _` | / _ \  |
+| | |___| (_| || | | | | || |_) || (_) | | |  | || || | | || (_| || (_| || (_) | |
+|  \____|\__,_||_| |_| |_|| .__/  \___/  |_|  |_||_||_| |_| \__,_| \__,_| \___/  |
+|_________________________|_|____________________________________________________|)EOF");
+printf("\n");
+
 }
