@@ -1,64 +1,70 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <locale.h>
 #include <wchar.h>
 #include <Windows.h>
 
 
-void printaTab (int bombas[][5], int tam, int clicados[][5], int resultante[][5]);
-int receberCordenada (int clicados[][5],int matriz[][5]);
-void calculaResultante (int bombas[][5], int resultante[][5]);
-void clicar (int matriz[][5], int i, int j, int matriz2[][5]);
+
+
 int menuCampo ();
 
+int receberCordenada (int **clicados,int **resultante, int tam);
+void clicar(int **clicados, int **resultante, int i, int j, int tam);
+void printaTab (int **clicados, int **resultante, int tam);
+void calculaResultante(int **resultante,int **bombas, int tam);
+void random(int vi[], int vj[], int nBombas, int tam);
+void zerar(int **matriz, int tam);
+
+void preencherBombas(int **bombas, int vi[], int vj[], int nBombas, int tam);
 
 int main()
 {
-    SetConsoleOutputCP(CP_UTF8);
-
-    int tam=5;
-    int bombas[][5]= {{0,0,1,0,0},
-                      {1,0,0,0,0},
-                      {0,0,0,0,0},
-                      {0,1,0,0,0},
-                      {1,0,0,1,0}
-    };
-
-    int clicados[5][5];
-    int resultante[5][5];
-    int seq;
-
-    for(int i=0; i<5; i++)
-    {
-        for(int j=0; j<5; j++)
-        {
-            clicados[i][j]=0;
-        }
-    }
-
-    for(int i=0; i<5; i++)
-    {
-        for(int j=0; j<5; j++)
-        {
-            resultante[i][j]=0;
-        }
-    }
-
     do{
-
-
     if (menuCampo()==1){
+    int tam;
+    int nBombas;
+    printf("Digite o tamanho do campo minado[tamXtam]: ");
+    scanf("%d", &tam);
+    printf("Digite a quantidade de bombas: ");
+    scanf("%d", &nBombas);
 
-    calculaResultante(bombas,resultante);
+    int **bombas;
+    bombas = malloc(sizeof(int *)*tam);
+    for(int i=0; i<tam; i++){
+    bombas[i] = malloc(sizeof(int)*tam);
+    }
+    int **clicados;
+    clicados = malloc(sizeof(int *)*tam);
+    for(int i=0; i<tam; i++){
+    clicados[i] = malloc(sizeof(int)*tam);
+    }
+    int **resultante;
+    resultante = malloc(sizeof(int *)*tam);
+    for(int i=0; i<tam; i++){
+    resultante[i] = malloc(sizeof(int)*tam);
+    }
+
+    zerar( bombas, tam);
+    zerar( clicados, tam);
+    zerar( resultante, tam);
+
+    int vi[nBombas], vj[nBombas];
+    random(vi,vj, nBombas, tam);
+    fflush(stdin);
+
+    preencherBombas(bombas,vi,vj,nBombas,tam);
+
+    calculaResultante(resultante,bombas,tam);
     do
     {
         system("cls");
         fflush(stdin);
-
-        printaTab(bombas,tam,clicados,resultante);
+        printaTab(clicados,resultante,tam);
 
     }
-    while(receberCordenada(clicados,resultante));
-
+    while(receberCordenada(clicados,resultante,tam));
     }else {
         printf("Saiu do jogo !");
 
@@ -70,137 +76,125 @@ int main()
     return 0;
 }
 
-void printaTab (int bombas[][5], int tam, int clicados[][5], int resultante[][5])
-{
+void printaTab (int **clicados, int **resultante, int tam){
+
     printf("   ");
-    for (int i=1; i<=5; i++)
-    {
+    for (int i=1; i<=tam; i++){
         printf(" %d", i);
     }
     printf("\n\n");
 
-    for(int i=0; i<tam; i++)
-    {
+    for(int i=0; i<tam; i++){
         printf("%c  ", 'A'+i);
         printf("|");
-        for(int j=0; j<tam; j++)
-        {
-            if (j>0)
-            {
+        for(int j=0; j<tam; j++){
+            if (j>0){
                 printf(" ");
             }
-            if (clicados[i][j]==0)
-            {
+            if (clicados[i][j]==0){
                 printf("#");
-            }
-            else if (resultante[i][j]>=0)
-            {
+            }else if (resultante[i][j]>=0){
                 printf("%d", resultante[i][j]);
+            }else{
+                printf("*");
             }
-            else
-                printf("💣");
-
-
         }
         printf("|");
         printf("\n");
     }
 }
 
-int receberCordenada (int clicados[][5],int matriz[][5])
-{
+int receberCordenada (int **clicados,int **resultante, int tam){
 
     char linhaCodificada;
-    int coluna, linha;
+    int i, j;
 
+    fflush(stdin);
     printf("\nDigite as cordenadas: ");
-    scanf("%c%d", &linhaCodificada,&coluna);
+    scanf("%c%d", &i,&j);
     fflush(stdin);
 
-    linha = linhaCodificada-'A';
-    coluna = coluna - 1;
+    i = toupper(i)-'A';
+    j = j - 1;
 
-    clicar(clicados,linha,coluna,matriz);
-
-    if (matriz[linha][coluna]==-1){
-            system("cls");
+    if (resultante[i][j]==-1){
+        system("cls");
+        clicados[i][j]=1;
         fflush(stdin);
         printf("Game Over!\n");
+        printaTab(clicados,resultante,tam);
+        printf("\n");
+        system("pause");
+        system("cls");
         return 0;
     }
 
+    clicar(clicados,resultante,i,j,tam);
     return 1;
 
 }
 
-void calculaResultante (int bombas[][5], int resultante[][5])
-{
-    for (int i=0; i<5; i++)
-    {
-        for (int j=0; j<5; j++)
-        {
-
+void calculaResultante(int **resultante,int **bombas, int tam){
+    for (int i=0; i<tam; i++){
+        for (int j=0; j<tam; j++){
             if (i>0)
             {
                 resultante[i][j]+=bombas[i-1][j];
                 if (j>0)
                     resultante[i][j]+=bombas[i-1][j-1];
-                if (j<4)
+                if (j<tam-1)
                     resultante[i][j]+=bombas[i-1][j+1];
             }
-            if (i<4)
+            if (i<tam-1)
             {
                 resultante[i][j]+=bombas[i+1][j];
-                if (j<4)
+                if (j<tam-1)
                     resultante[i][j]+=bombas[i+1][j+1];
                 if (j>0)
                     resultante[i][j]+=bombas[i+1][j-1];
             }
             if (j>0)
                 resultante[i][j]+=bombas[i][j-1];
-            if (j<4)
+            if (j<tam-1)
                 resultante[i][j]+=bombas[i][j+1];
 
             if (bombas[i][j]==1)
             {
                 resultante[i][j]=-1;
             }
-
         }
-
     }
 }
 
-void clicar (int matriz[][5], int i, int j, int matriz2[][5])
-{
-    if (matriz[i][j]==1)
+void clicar(int **clicados, int **resultante, int i, int j, int tam){
+    if (clicados[i][j]==1)
     {
         return;
     }
-    matriz[i][j]=1;
+    clicados[i][j]=1;
 
-    if (matriz2[i][j] == 0)
+    if (resultante[i][j] == 0)
     {
         if (i>0)
         {
-            clicar(matriz, i-1, j, matriz2);
+            clicar(clicados,resultante, i-1, j, tam);
             if (j>0)
-                clicar(matriz, i-1,j-1,matriz2);
-            if (j<4)
-                clicar(matriz, i-1,j+1,matriz2);
+                clicar(clicados,resultante, i-1, j-1, tam);
+            if (j<tam-1)
+                clicar(clicados,resultante, i-1, j+1, tam);
         }
-        if (i<4)
+        if (i<tam-1)
         {
-            clicar(matriz, i+1,j,matriz2);
-            if (j<4)
-                clicar(matriz, i+1,j+1,matriz2);
+            clicar(clicados,resultante, i+1, j, tam);
+            if (j<tam-1)
+                clicar(clicados,resultante, i+1, j+1, tam);
             if (j>0)
-                clicar(matriz, i+1,j-1,matriz2);
+                clicar(clicados,resultante, i+1, j-1, tam);
         }
         if (j>0)
-            clicar(matriz, i,j-1,matriz2);
-        if (j<4)
-            clicar(matriz, i,j+1,matriz2);
+            clicar(clicados,resultante, i, j-1, tam);
+        if (j<tam-1)
+            clicar(clicados,resultante, i, j+1, tam);
 
     }
 }
@@ -220,4 +214,38 @@ int menuCampo (){
     return resp;
 }
 
+void random(int vi[], int vj[], int nBombas, int tam){
+    srand( (unsigned)time(NULL) );
+  for(int k=0; k<nBombas;k++){
+    vi[k]= rand() % (tam-1);
+    vj[k]= rand() % (tam-1);
+    for(int n=0; n<k; n++){
+        if(vi[k]==vi[n] && vj[k]==vj[n])
+        k--;
+    }
+  }
+}
 
+void zerar(int **matriz, int tam){
+    for(int i=0; i<tam; i++)
+    {
+        for(int j=0; j<tam; j++)
+        {
+            matriz[i][j]=0;
+        }
+    }
+}
+
+void preencherBombas(int **bombas, int vi[], int vj[], int nBombas, int tam){
+    for(int i=0; i<tam; i++){
+        for(int j=0; j<tam; j++){
+            for(int k=0; k<nBombas; k++){
+                if(i==vi[k]&&j==vj[k]){
+                    bombas[i][j]=1;
+                    break;
+                }else
+                    bombas[i][j]=0;
+            }
+        }
+    }
+}
