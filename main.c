@@ -7,10 +7,12 @@
 
 
 void printCampoMinado();
+void printGameOver();
+void printVictory();
 
 int menuCampo ();
 
-int receberCordenada (int **clicados,int **resultante, int tam);
+int receberCordenada (int **clicados,int **resultante, int tam,int nBombas);
 void clicar(int **clicados, int **resultante, int i, int j, int tam);
 void printaTab (int **clicados, int **resultante, int tam);
 void calculaResultante(int **resultante,int **bombas, int tam);
@@ -18,6 +20,7 @@ void random(int vi[], int vj[], int nBombas, int tam);
 void zerar(int **matriz, int tam);
 
 void preencherBombas(int **bombas, int vi[], int vj[], int nBombas, int tam);
+
 
 int main()
 {
@@ -64,10 +67,9 @@ int main()
         printaTab(clicados,resultante,tam);
 
     }
-    while(receberCordenada(clicados,resultante,tam));
+    while(receberCordenada(clicados,resultante,tam,nBombas));
     }else {
         printf("Saiu do jogo !");
-
         return 0;
     }
     }while(1);
@@ -77,10 +79,16 @@ int main()
 }
 
 void printaTab (int **clicados, int **resultante, int tam){
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
 
     printf("   ");
-    for (int i=1; i<=tam; i++){
-        printf(" %d", i);
+    for (int i=0; i<tam; i++){
+        printf(" %c", 'A'+i);
     }
     printf("\n\n");
 
@@ -92,46 +100,80 @@ void printaTab (int **clicados, int **resultante, int tam){
                 printf(" ");
             }
             if (clicados[i][j]==0){
+                SetConsoleTextAttribute(hConsole, saved_attributes);
                 printf("#");
-            }else if (resultante[i][j]>=0){
+            }else if(resultante[i][j]>=0){
+                if(resultante[i][j]==0){
+                SetConsoleTextAttribute(hConsole, saved_attributes);
                 printf("%d", resultante[i][j]);
+                }else if(resultante[i][j]==1){
+                SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE);
+                printf("%d", resultante[i][j]);
+                }else if(resultante[i][j]==2){
+                SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN);
+                printf("%d", resultante[i][j]);
+                }else if(resultante[i][j]==3){
+                SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE);
+                printf("%d", resultante[i][j]);
+                }else{
+                SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN);
+                printf("%d", resultante[i][j]);
+                }
             }else{
+                SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
                 printf("*");
             }
         }
+        SetConsoleTextAttribute(hConsole, saved_attributes);
         printf("|");
         printf("\n");
     }
 }
 
-int receberCordenada (int **clicados,int **resultante, int tam){
+int receberCordenada (int **clicados,int **resultante, int tam, int nBombas){
 
     char linhaCodificada;
     int i, j;
 
+
     fflush(stdin);
-    printf("\nDigite as cordenadas: ");
-    scanf("%c%d", &i,&j);
+    printf("\nDigite as cordenadas[LinhaColuna]: ");
+    scanf("%c%c", &i,&j);
     fflush(stdin);
 
     i = toupper(i)-'A';
-    j = j - 1;
+    j = toupper(j)-'A';
 
-    if (resultante[i][j]==-1){
+    if(resultante[i][j]==-1){
         system("cls");
         clicados[i][j]=1;
         fflush(stdin);
-        printf("Game Over!\n");
+        printGameOver();
         printaTab(clicados,resultante,tam);
         printf("\n");
         system("pause");
         system("cls");
         return 0;
+    }else{
+        clicar(clicados,resultante,i,j,tam);
+        int vitoria=0;
+        for(int i=0; i<tam; i++){
+            for(int j=0; j<tam; j++){
+                vitoria += clicados[i][j];
+            }
+        }
+        if(vitoria==(tam*tam-nBombas)){
+            system("cls");
+            fflush(stdin);
+            printVictory();
+            printaTab(clicados,resultante,tam);
+            printf("\n");
+            system("pause");
+            system("cls");
+            return 0;
+        }
+        return 1;
     }
-
-    clicar(clicados,resultante,i,j,tam);
-    return 1;
-
 }
 
 void calculaResultante(int **resultante,int **bombas, int tam){
@@ -167,6 +209,7 @@ void calculaResultante(int **resultante,int **bombas, int tam){
 }
 
 void clicar(int **clicados, int **resultante, int i, int j, int tam){
+
     if (clicados[i][j]==1)
     {
         return;
@@ -200,18 +243,15 @@ void clicar(int **clicados, int **resultante, int i, int j, int tam){
 }
 
 int menuCampo (){
-
+    setlocale(LC_ALL, "Portuguese");
     int resp;
     printCampoMinado();
-    printf(R"EOF(  _           _   ___    ___    _    ___        ___         ___        _
- / |  ___    (_) / _ \  / __|  /_\  | _ \      |_  )  ___  / __| __ _ (_) _ _
- | | |___|   | || (_) || (_ | / _ \ |   /       / /  |___| \__ \/ _` || || '_|
- |_|        _/ | \___/  \___|/_/ \_\|_|_\      /___|       |___/\__,_||_||_|
-           |__/                                                                     )EOF");
-    printf("|1-jogar\n");
-    printf("|2-sair: -------------------\n");
-    printf("---------------------------\n");
-
+    printf(R"EOF(|    _          _                                 ___      ___        _          |
+|   / | ___  _ | | ___  __ _  __ _  _ _          |_  )___ / __| __ _ (_) _ _     |
+|   | ||___|| || |/ _ \/ _` |/ _` || '_|          / /|___|\__ \/ _` || || '_|    |
+|   |_|      \__/ \___/\__, |\__,_||_|           /___|    |___/\__,_||_||_|      |
+|_______________________|___/____________________________________________________|)EOF");
+printf("\nDigite a opção desejada: ");
     scanf("%d", &resp);
 
     return resp;
@@ -261,6 +301,7 @@ void printCampoMinado(){
     GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
     saved_attributes = consoleInfo.wAttributes;
 
+    SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
     printf(R"EOF( ________________________________________________________________________________
 |   ____                                  __  __  _                    _         |
 |  / ___| __ _  _ __ ___   _ __    ___   |  \/  |(_) _ __    __ _   __| |  ___   |
@@ -268,6 +309,46 @@ void printCampoMinado(){
 | | |___| (_| || | | | | || |_) || (_) | | |  | || || | | || (_| || (_| || (_) | |
 |  \____|\__,_||_| |_| |_|| .__/  \___/  |_|  |_||_||_| |_| \__,_| \__,_| \___/  |
 |_________________________|_|____________________________________________________|)EOF");
+    SetConsoleTextAttribute(hConsole, saved_attributes);
 printf("\n");
 
 }
+
+void printGameOver(){
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+
+    SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
+    printf(R"EOF(   ____                               ___                     _
+  / ___|  __ _  _ __ ___    ___      / _ \ __   __ ___  _ __ | |
+ | |  _  / _` || '_ ` _ \  / _ \    | | | |\ \ / // _ \| '__|| |
+ | |_| || (_| || | | | | ||  __/    | |_| | \ V /|  __/| |   |_|
+  \____| \__,_||_| |_| |_| \___|     \___/   \_/  \___||_|   (_)
+                                                                )EOF");
+    SetConsoleTextAttribute(hConsole, saved_attributes);
+    printf("\n");
+}
+
+void printVictory(){
+     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+
+    SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN);
+printf(R"EOF( __     __  _          _                            _
+ \ \   / / (_)   ___  | |_    ___    _ __   _   _  | |
+  \ \ / /  | |  / __| | __|  / _ \  | '__| | | | | | |
+   \ V /   | | | (__  | |_  | (_) | | |    | |_| | |_|
+    \_/    |_|  \___|  \__|  \___/  |_|     \__, | (_)
+                                            |___/     )EOF");
+    SetConsoleTextAttribute(hConsole, saved_attributes);
+    printf("\n");
+}
+
