@@ -2,10 +2,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <locale.h>
-#include <wchar.h>
 #include <Windows.h>
 
-
+int vitoria=0;
 int menuCampo ();
 
 void printCampoMinado();
@@ -14,7 +13,7 @@ void printVictory();
 void printaTab (int **clicados, int **resultante, int tam);
 
 int receberCordenada(int **clicados,int **resultante, int tam,int nBombas);
-void clicar(int **clicados, int **resultante, int i, int j, int tam);
+int clicar(int **clicados, int **resultante, int i, int j, int tam);
 
 void zerar(int **matriz, int tam);
 void random(int vi[], int vj[], int nBombas, int tam);
@@ -23,14 +22,31 @@ void preencherBombas(int **bombas, int vi[], int vj[], int nBombas, int tam);
 
 
 int main(){
+    setlocale(LC_ALL, "Portuguese");
     do{
     if (menuCampo()==1){
     int tam;
     int nBombas;
+    do{
     printf("Digite o tamanho do campo minado[tamXtam]: ");
     scanf("%d", &tam);
+    if(tam<=1){
+        printf("Tamanho minimo do campo é 2X2!\n");
+        system("pause");
+    }else{
+        break;
+    }
+    }while(1);
+    do{
     printf("Digite a quantidade de bombas: ");
     scanf("%d", &nBombas);
+    if(nBombas>=(tam*tam/2)){
+        printf("Numero de bombas superior ou igual a 50%% das posições disponiveis!\nNumero maximo de bombas nesse campo %d...\n",(tam*tam)/2-1);
+        system("pause");
+    }else{
+        break;
+    }
+    }while(1);
 
     int **bombas;
     bombas = malloc(sizeof(int *)*tam);
@@ -208,11 +224,8 @@ void printaTab (int **clicados, int **resultante, int tam){
 
 
 int receberCordenada (int **clicados,int **resultante, int tam, int nBombas){
-
     char linhaCodificada;
     int i, j;
-
-
     fflush(stdin);
     printf("\nDigite as cordenadas[LinhaColuna]: ");
     scanf("%c%c", &i,&j);
@@ -239,13 +252,7 @@ int receberCordenada (int **clicados,int **resultante, int tam, int nBombas){
         system("cls");
         return 0;
     }else{
-        clicar(clicados,resultante,i,j,tam);
-        int vitoria=0;
-        for(int i=0; i<tam; i++){
-            for(int j=0; j<tam; j++){
-                vitoria += clicados[i][j];
-            }
-        }
+        vitoria += clicar(clicados,resultante,i,j,tam);
         if(vitoria==(tam*tam-nBombas)){
             system("cls");
             fflush(stdin);
@@ -254,44 +261,42 @@ int receberCordenada (int **clicados,int **resultante, int tam, int nBombas){
             printf("\n");
             system("pause");
             system("cls");
+            vitoria=0;
             return 0;
         }
         return 1;
     }
 }
 
-void clicar(int **clicados, int **resultante, int i, int j, int tam){
-
-    if (clicados[i][j]==1)
-    {
-        return;
+int clicar(int **clicados, int **resultante, int i, int j, int tam){
+    int retorno=0;
+    if (clicados[i][j]==1){
+        return 0;
     }
     clicados[i][j]=1;
-
-    if (resultante[i][j] == 0)
-    {
-        if (i>0)
-        {
-            clicar(clicados,resultante, i-1, j, tam);
+    retorno += 1;
+    if (resultante[i][j] == 0){
+        if (i>0){
+            retorno += clicar(clicados,resultante, i-1, j, tam);
             if (j>0)
-                clicar(clicados,resultante, i-1, j-1, tam);
+                retorno += clicar(clicados,resultante, i-1, j-1, tam);
             if (j<tam-1)
-                clicar(clicados,resultante, i-1, j+1, tam);
+                retorno += clicar(clicados,resultante, i-1, j+1, tam);
         }
-        if (i<tam-1)
-        {
-            clicar(clicados,resultante, i+1, j, tam);
+        if (i<tam-1){
+            retorno += clicar(clicados,resultante, i+1, j, tam);
             if (j<tam-1)
-                clicar(clicados,resultante, i+1, j+1, tam);
+                retorno += clicar(clicados,resultante, i+1, j+1, tam);
             if (j>0)
-                clicar(clicados,resultante, i+1, j-1, tam);
+                retorno += clicar(clicados,resultante, i+1, j-1, tam);
         }
         if (j>0)
-            clicar(clicados,resultante, i, j-1, tam);
+            retorno += clicar(clicados,resultante, i, j-1, tam);
         if (j<tam-1)
-            clicar(clicados,resultante, i, j+1, tam);
+            retorno += clicar(clicados,resultante, i, j+1, tam);
 
     }
+    return retorno;
 }
 
 
