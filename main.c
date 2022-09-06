@@ -16,9 +16,9 @@ int receberCordenada(int **clicados,int **resultante, int tam,int nBombas);
 int clicar(int **clicados, int **resultante, int i, int j, int tam);
 
 void zerar(int **matriz, int tam);
-void random(int vi[], int vj[], int nBombas, int tam);
+void random(int **bombas, int nBombas, int tam);
 void calculaResultante(int **resultante,int **bombas, int tam);
-void preencherBombas(int **bombas, int vi[], int vj[], int nBombas, int tam);
+
 
 
 int main(){
@@ -68,11 +68,8 @@ int main(){
     zerar( clicados, tam);
     zerar( resultante, tam);
 
-    int vi[nBombas], vj[nBombas];
-    random(vi,vj, nBombas, tam);
+    random(bombas, nBombas, tam);
     fflush(stdin);
-
-    preencherBombas(bombas,vi,vj,nBombas,tam);
 
     calculaResultante(resultante,bombas,tam);
     do
@@ -198,16 +195,16 @@ void printaTab (int **clicados, int **resultante, int tam){
                 SetConsoleTextAttribute(hConsole, saved_attributes);
                 printf("%d", resultante[i][j]);
                 }else if(resultante[i][j]==1){
-                SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE);
+                SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_INTENSITY);
                 printf("%d", resultante[i][j]);
                 }else if(resultante[i][j]==2){
-                SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN);
+                SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_INTENSITY);
                 printf("%d", resultante[i][j]);
                 }else if(resultante[i][j]==3){
-                SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE);
+                SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE |FOREGROUND_INTENSITY);
                 printf("%d", resultante[i][j]);
                 }else{
-                SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN);
+                SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN |FOREGROUND_INTENSITY);
                 printf("%d", resultante[i][j]);
                 }
             }else{
@@ -311,17 +308,21 @@ void zerar(int **matriz, int tam){
     }
 }
 
-void random(int vi[], int vj[], int nBombas, int tam){
-    srand( (unsigned)time(NULL) );
+void random(int **bombas, int nBombas, int tam){
+    srand(time(NULL));
+    int i;
+    int j;
   for(int k=0; k<nBombas;k++){
-    vi[k]= rand() % (tam-1);
-    vj[k]= rand() % (tam-1);
-    for(int n=0; n<k; n++){
-        if(vi[k]==vi[n] && vj[k]==vj[n])
+    i= rand() % (tam);
+    j= rand() % (tam);
+    if(bombas[i][j]==0){
+        bombas[i][j]=1;
+    }else{
         k--;
     }
   }
 }
+
 
 void calculaResultante(int **resultante,int **bombas, int tam){
     for (int i=0; i<tam; i++){
@@ -355,19 +356,6 @@ void calculaResultante(int **resultante,int **bombas, int tam){
     }
 }
 
-void preencherBombas(int **bombas, int vi[], int vj[], int nBombas, int tam){
-    for(int i=0; i<tam; i++){
-        for(int j=0; j<tam; j++){
-            for(int k=0; k<nBombas; k++){
-                if(i==vi[k]&&j==vj[k]){
-                    bombas[i][j]=1;
-                    break;
-                }else
-                    bombas[i][j]=0;
-            }
-        }
-    }
-}
 
 
 
